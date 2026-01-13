@@ -185,8 +185,29 @@ namespace QuickSearch
                 if (worker.CancellationPending)
                     return false;
 
-                if (!matchedWords.Contains(word) && fieldValue.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (matchedWords.Contains(word))
+                    continue;
+
+                // 1. 优先尝试原始匹配 (极快)
+                if (fieldValue.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
                     matchedWords.Add(word);
+                    continue; // 命中则跳过后续逻辑
+                }
+
+                // 2. 拼音匹配 (仅当包含非ASCII字符时尝试，或者直接交给Helper判断)
+                try
+                {
+                    // PinyinHelper 内部已经包含了 IsChinese 的判断，这里直接调用即可
+                    if (PinyinHelper.ContainsPinyin(fieldValue, word))
+                    {
+                        matchedWords.Add(word);
+                    }
+                }
+                catch (Exception)
+                {
+                    // 极端的容错：如果拼音转换库崩了，不要让整个搜索挂掉，当作没匹配到处理
+                }
             }
 
             return matchedWords.Count == searchWords.Length;

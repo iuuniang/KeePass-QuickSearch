@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>QuickSearch</RootNamespace>
     <AssemblyName>QuickSearch</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <LangVersion>5</LangVersion>
     <TargetFrameworkProfile />
@@ -47,6 +47,12 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Reference Include="KeePass">
+      <HintPath>C:\Users\iuuni\AppData\Local\Programs\KeePass Password Safe 2\KeePass.exe</HintPath>
+    </Reference>
+    <Reference Include="PinYinConverterCore, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\PinYinConverterCore.1.0.2\lib\net45\PinYinConverterCore.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Drawing" />
@@ -65,6 +71,7 @@
     <Compile Include="PaddedComboBox.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="PinyinHelper.cs" />
     <Compile Include="SearchStatus.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -94,16 +101,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\KeePass2.x\KeePass\KeePass_N48.csproj">
-      <Project>{10938016-dee2-4a25-9a5a-8fd3444379ca}</Project>
-      <Name>KeePass</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

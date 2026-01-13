@@ -38,6 +38,10 @@ namespace QuickSearch
 
             Settings.Default.Load(host);
 
+            // [新增] 启动拼音库预热
+            // 这不会阻塞 KeePass 启动，因为它在 PinyinHelper 内部是异步运行的
+            PinyinHelper.Preload();
+
             HideQuickFindControl();
             LocalizeSettingsPanel();
             _qsControl = AddQuickSearchControl(host);
