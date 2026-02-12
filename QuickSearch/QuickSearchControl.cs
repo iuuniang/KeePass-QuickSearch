@@ -14,6 +14,12 @@ namespace QuickSearch
     public partial class QuickSearchControl : UserControl
     {
         private readonly Settings _lightModeSettings = new Settings();
+
+        // [新增] 搜索防抖计时器
+        private Timer _searchDebounceTimer;
+        // [新增] 专门的搜索触发事件，外部 Controller 应该订阅这个事件而不是 TextChanged
+        public event EventHandler SearchTriggered;
+
         public new string Text
         {
             get { return comboBoxSearch.Text; }
@@ -35,6 +41,12 @@ namespace QuickSearch
         public QuickSearchControl()
         {
             InitializeComponent();
+
+            // [新增] 初始化防抖计时器
+            _searchDebounceTimer = new Timer();
+            _searchDebounceTimer.Interval = 200; // 200毫秒延迟，适合输入法上屏
+            _searchDebounceTimer.Tick += SearchDebounceTimer_Tick;
+
             imageListSearchButton.Images.Add(QuickSearchExt.SearchImage);
             imageListSearchButton.Images.Add(QuickSearchExt.OptionsImage);
 
@@ -63,6 +75,11 @@ namespace QuickSearch
             comboBoxSearch.GotFocus += ComboBoxSearch_GotFocus;
             comboBoxSearch.LostFocus += ComboBoxSearch_LostFocus;
             comboBoxSearch.DropDown += ComboBoxSearch_DropDown;
+
+            // [新增] 监听内部文本变化和按键，用于驱动防抖逻辑
+            comboBoxSearch.TextChanged += ComboBoxSearch_InternalTextChanged;
+            comboBoxSearch.KeyDown += ComboBoxSearch_InternalKeyDown;
+
             checkBoxGroupPath.CheckedChanged += CheckBoxGroupPath_CheckedChanged;
 
             if (comboBoxSearch.IsHandleCreated)
@@ -92,6 +109,42 @@ namespace QuickSearch
 
             var isDarkThemeEnabled = string.Equals(Program.Config.CustomConfig.GetString("KeeTheme.Enabled"), "true", StringComparison.OrdinalIgnoreCase);
             ApplyThemeColors(isDarkThemeEnabled);
+        }
+
+        // [新增] 计时器触发：说明用户停止输入了，执行搜索
+        private void SearchDebounceTimer_Tick(object sender, EventArgs e)
+        {
+            _searchDebounceTimer.Stop();
+            // 触发搜索事件
+            if (SearchTriggered != null)
+            {
+                SearchTriggered(this, EventArgs.Empty);
+            }
+        }
+
+        // [新增] 内部文本变化监听：重置计时器
+        private void ComboBoxSearch_InternalTextChanged(object sender, EventArgs e)
+        {
+            // 无论是一个字一个字打，还是输入法整段上屏，都会触发这里
+            // 停止旧计时，开启新计时，实现防抖
+            _searchDebounceTimer.Stop();
+            _searchDebounceTimer.Start();
+        }
+
+        // [新增] 内部按键监听：处理回车立即搜索
+        private void ComboBoxSearch_InternalKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                // 如果用户明确按了回车（且没被IME吃掉），取消等待，立即搜索
+                _searchDebounceTimer.Stop();
+                e.Handled = true;
+                e.SuppressKeyPress = true; // 防止发出“叮”的声音
+                if (SearchTriggered != null)
+                {
+                    SearchTriggered(this, EventArgs.Empty);
+                }
+            }
         }
 
         public void UpdateSearchStatus(SearchStatus status)

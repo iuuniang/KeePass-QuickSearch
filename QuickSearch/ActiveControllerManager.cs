@@ -47,9 +47,10 @@ namespace QuickSearch
 
             foreach (KeyValuePair<PwDatabase, SearchController> pair in _dictionary)
             {
-                _qsControl.TextChanged -= pair.Value.TextUpdateHandler;
+                // switch subscription to SearchTriggered (debounced) instead of TextChanged
+                _qsControl.SearchTriggered -= pair.Value.TextUpdateHandler;
                 if (pair.Key == _host.Database)
-                    _qsControl.TextChanged += pair.Value.TextUpdateHandler;
+                    _qsControl.SearchTriggered += pair.Value.TextUpdateHandler;
             }
         }
 
@@ -67,7 +68,7 @@ namespace QuickSearch
                 {
                     SearchController controller;
                     _dictionary.TryGetValue(database, out controller);
-                    _qsControl.TextChanged -= controller.TextUpdateHandler;
+                    _qsControl.SearchTriggered -= controller.TextUpdateHandler;
                     _dictionary.Remove(database);
                 }
                 else // database is open
@@ -97,7 +98,7 @@ namespace QuickSearch
             _dictionary.Add(e.Database, searchController);
             //assuming the opened Database is also the active Database we subscribe it's SearchController
             //so user input will be handled by that Controller
-            _qsControl.TextChanged += searchController.TextUpdateHandler;
+            _qsControl.SearchTriggered += searchController.TextUpdateHandler;
             _qsControl.Enabled = true;
             _qsControl.BeginInvoke((Action)(() => _qsControl.comboBoxSearch.Focus()));
         }
